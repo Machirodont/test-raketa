@@ -1,18 +1,24 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Raketa\BackendTestTask\Domain;
 
 final class Cart
 {
+
+    /**
+     * @param  string  $uuid
+     * @param  \Raketa\BackendTestTask\Domain\Customer  $customer
+     * @param  string  $paymentMethod
+     * @param  CartItem[]  $items
+     */
     public function __construct(
         readonly private string $uuid,
         readonly private Customer $customer,
         readonly private string $paymentMethod,
         private array $items,
-    ) {
-    }
+    ) {}
 
     public function getUuid(): string
     {
@@ -38,4 +44,13 @@ final class Cart
     {
         $this->items[] = $item;
     }
+
+    public function getItemsUuidList(): array
+    {
+        return array_map(
+            fn(CartItem $item) => $item->getUuid(),
+            $this->items
+        );
+    }
+
 }

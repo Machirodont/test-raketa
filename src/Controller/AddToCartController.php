@@ -12,39 +12,54 @@ use Ramsey\Uuid\Uuid;
 
 readonly class AddToCartController
 {
-    public function __construct(
-        private ProductRepository $productRepository,
-        private CartView $cartView,
-        private CartManager $cartManager,
-    ) {
-    }
 
-    public function get(RequestInterface $request): ResponseInterface
+    public function __construct(
+      private ProductRepository $productRepository,
+      private CartView $cartView,
+      private CartManager $cartManager,
+      private ResponseFactory $responseFactory,
+    ) {}
+
+    public function post(RequestInterface $request): ResponseInterface
     {
         $rawRequest = json_decode($request->getBody()->getContents(), true);
-        $product = $this->productRepository->getByUuid($rawRequest['productUuid']);
+        $product = $this->productRepository->getByUuid(
+          $rawRequest['productUuid']
+        );
+
+        if(!$product->isActive()){
+            return $this->responseFactory->createResponse(
+                ['message' => 'Product not available'],
+                409
+            );
+        }
 
         $cart = $this->cartManager->getCart();
-        $cart->addItem(new CartItem(
+        if (! $cart) {
+            return $this->responseFactory->createResponse(
+                ['message' => 'Cart not found'],
+                404
+            );
+        }
+
+        $cart->addItem(
+          new CartItem(
             Uuid::uuid4()->toString(),
             $product->getUuid(),
             $product->getPrice(),
             $rawRequest['quantity'],
-        ));
-
-        $response = new JsonResponse();
-        $response->getBody()->write(
-            json_encode(
-                [
-                    'status' => 'success',
-                    'cart' => $this->cartView->toArray($cart)
-                ],
-                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-            )
+          )
         );
 
-        return $response
-            ->withHeader('Content-Type', 'application/json; charset=utf-8')
-            ->withStatus(200);
+        $this->cartManager->saveCart($cart);
+
+        return $this->responseFactory->createResponse(
+          [
+            'status' => 'success',
+            'cart' => $this->cartView->toArray($cart),
+          ],
+          200
+        );
     }
+
 }

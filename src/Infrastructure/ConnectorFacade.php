@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Raketa\BackendTestTask\Infrastructure;
 
@@ -9,19 +9,16 @@ use RedisException;
 
 class ConnectorFacade
 {
-    public string $host;
-    public int $port = 6379;
-    public ?string $password = null;
-    public ?int $dbindex = null;
 
-    public $connector;
+    public Connector $connector;
 
-    public function __construct($host, $port, $password, $dbindex)
-    {
-        $this->host = $host;
-        $this->port = $port;
-        $this->password = $password;
-        $this->dbindex = $dbindex;
+    public function __construct(
+        private string $host,
+        private int $port = 6379,
+        private ?string $password = null,
+        private ?int $dbindex = null,
+    ) {
+        $this->build();
     }
 
     protected function build(): void
@@ -45,4 +42,5 @@ class ConnectorFacade
             $this->connector = new Connector($redis);
         }
     }
+
 }

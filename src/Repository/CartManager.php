@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Raketa\BackendTestTask\Repository;
 
@@ -9,44 +9,44 @@ use Psr\Log\LoggerInterface;
 use Raketa\BackendTestTask\Domain\Cart;
 use Raketa\BackendTestTask\Infrastructure\ConnectorFacade;
 
-class CartManager extends ConnectorFacade
+class CartManager
 {
-    public $logger;
 
-    public function __construct($host, $port, $password)
-    {
-        parent::__construct($host, $port, $password, 1);
-        parent::build();
-    }
+    private const CART_CAHCE_PREFIX = 'cart';
 
-    public function setLogger(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-    }
+    public function __construct(
+        private readonly ConnectorFacade $connectorFacade,
+        private readonly LoggerInterface $logger,
+    ) {}
 
-    /**
-     * @inheritdoc
-     */
-    public function saveCart(Cart $cart)
+    public function saveCart(Cart $cart): void
     {
         try {
-            $this->connector->set($cart, session_id());
+            $this->connectorFacade->connector->set(
+                $this->getCartCacheKey(),
+                $cart
+            );
         } catch (Exception $e) {
             $this->logger->error('Error');
         }
     }
 
-    /**
-     * @return ?Cart
-     */
-    public function getCart()
+    public function getCart(): ?Cart
     {
         try {
-            return $this->connector->get(session_id());
+            return $this->connectorFacade->connector->get(
+                $this->getCartCacheKey()
+            );
         } catch (Exception $e) {
             $this->logger->error('Error');
         }
 
-        return new Cart(session_id(), []);
+        return null;
     }
+
+    private function getCartCacheKey(): string
+    {
+        return self::CART_CAHCE_PREFIX.'_'.session_id();
+    }
+
 }

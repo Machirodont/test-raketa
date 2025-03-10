@@ -10,7 +10,8 @@ use Raketa\BackendTestTask\Repository\ProductRepository;
 readonly class CartView
 {
     public function __construct(
-        private ProductRepository $productRepository
+        private ProductRepository $productRepository,
+        private ProductsView $productsView,
     ) {
     }
 
@@ -30,24 +31,20 @@ readonly class CartView
             'payment_method' => $cart->getPaymentMethod(),
         ];
 
+        $productList = $this->productRepository->getByUuidList($cart->getItemsUuidList());
+
         $total = 0;
         $data['items'] = [];
         foreach ($cart->getItems() as $item) {
             $total += $item->getPrice() * $item->getQuantity();
-            $product = $this->productRepository->getByUuid($item->getProductUuid());
+            $product = $productList->getProductByUuid($item->getUuid());
 
             $data['items'][] = [
                 'uuid' => $item->getUuid(),
                 'price' => $item->getPrice(),
                 'total' => $total,
                 'quantity' => $item->getQuantity(),
-                'product' => [
-                    'id' => $product->getId(),
-                    'uuid' => $product->getUuid(),
-                    'name' => $product->getName(),
-                    'thumbnail' => $product->getThumbnail(),
-                    'price' => $product->getPrice(),
-                ],
+                'product' => $product ? $this->productsView->toArray($product) : null,
             ];
         }
 
