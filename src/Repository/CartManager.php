@@ -8,22 +8,22 @@ use Exception;
 use Psr\Log\LoggerInterface;
 use Raketa\BackendTestTask\Domain\Cart;
 use Raketa\BackendTestTask\Domain\Customer;
-use Raketa\BackendTestTask\Infrastructure\ConnectorFacade;
+use Raketa\BackendTestTask\Infrastructure\Connector;
 
 class CartManager
 {
 
-    private const CART_CAHCE_PREFIX = 'cart';
+    private const CART_CACHE_PREFIX = 'cart';
 
     public function __construct(
-        private readonly ConnectorFacade $connectorFacade,
         private readonly LoggerInterface $logger,
+        private readonly Connector $connector,
     ) {}
 
     public function saveCart(Cart $cart): void
     {
         try {
-            $this->connectorFacade->connector->set(
+            $this->connector->set(
                 $this->getCartCacheKey(),
                 $cart
             );
@@ -35,9 +35,14 @@ class CartManager
     public function getCart(): ?Cart
     {
         try {
-            return $this->connectorFacade->connector->get(
+            $cart = $this->connector->get(
                 $this->getCartCacheKey()
             );
+
+            if(! $cart instanceof Cart) {
+                throw new Exception('Cart not found');
+            }
+
         } catch (Exception $e) {
             $this->logger->error('Error');
         }
@@ -57,7 +62,7 @@ class CartManager
 
     private function getCartCacheKey(): string
     {
-        return self::CART_CAHCE_PREFIX.'_'.session_id();
+        return self::CART_CACHE_PREFIX.'_'.session_id();
     }
 
 }

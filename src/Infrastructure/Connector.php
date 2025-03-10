@@ -4,16 +4,22 @@ declare(strict_types=1);
 
 namespace Raketa\BackendTestTask\Infrastructure;
 
-use Raketa\BackendTestTask\Domain\Cart;
 use Redis;
 use RedisException;
 
 readonly class Connector
 {
 
+    private Redis $redis;
+
     public function __construct(
-        private Redis $redis
-    ) {}
+        private string $host,
+        private int $port = 6379,
+        private ?string $password = null,
+        private ?int $dbindex = null,
+    ) {
+        $this->build();
+    }
 
     /**
      * @throws ConnectorException
@@ -30,7 +36,7 @@ readonly class Connector
     /**
      * @throws ConnectorException
      */
-    public function set(string $key, $value)
+    public function set(string $key, $value): void
     {
         try {
             $this->redis->setex($key, 24 * 60 * 60, serialize($value));
@@ -42,6 +48,27 @@ readonly class Connector
     public function has($key): bool
     {
         return $this->redis->exists($key);
+    }
+
+    protected function build(): void
+    {
+        $this->redis = new Redis();
+
+        try {
+            $isConnected = $this->redis->isConnected();
+            if (! $isConnected && $this->redis->ping('Pong')) {
+                $isConnected = $this->redis->connect(
+                    $this->host,
+                    $this->port,
+                );
+            }
+        } catch (RedisException) {
+        }
+
+        if ($isConnected) {
+            $redis->auth($this->password);
+            $redis->select($this->dbindex);
+        }
     }
 
 }
