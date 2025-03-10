@@ -7,6 +7,8 @@ namespace Raketa\BackendTestTask\Domain;
 final class Cart
 {
 
+    public const PRICE_DEFAULT_SCALE = 2;
+
     /**
      * @param  string  $uuid
      * @param  \Raketa\BackendTestTask\Domain\Customer  $customer
@@ -45,10 +47,10 @@ final class Cart
         $this->items[] = $item;
     }
 
-    public function getItemsUuidList(): array
+    public function getProductsUuidList(): array
     {
         return array_map(
-            fn(CartItem $item) => $item->getUuid(),
+            fn(CartItem $item) => $item->getProductUuid(),
             $this->items
         );
     }

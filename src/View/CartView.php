@@ -31,18 +31,19 @@ readonly class CartView
             'payment_method' => $cart->getPaymentMethod(),
         ];
 
-        $productList = $this->productRepository->getByUuidList($cart->getItemsUuidList());
+        $productList = $this->productRepository->getByUuidList($cart->getProductsUuidList());
 
-        $total = 0;
+        $total = '0';
         $data['items'] = [];
         foreach ($cart->getItems() as $item) {
-            $total += $item->getPrice() * $item->getQuantity();
-            $product = $productList->getProductByUuid($item->getUuid());
+            $itemTotal = bcmul($item->getPrice(),(string)$item->getQuantity(),Cart::PRICE_DEFAULT_SCALE);
+            $total = bcadd($total,$itemTotal,Cart::PRICE_DEFAULT_SCALE);
+            $product = $productList->getProductByUuid($item->getProductUuid());
 
             $data['items'][] = [
                 'uuid' => $item->getUuid(),
                 'price' => $item->getPrice(),
-                'total' => $total,
+                'total' => $itemTotal,
                 'quantity' => $item->getQuantity(),
                 'product' => $product ? $this->productsView->toArray($product) : null,
             ];

@@ -14,7 +14,7 @@ readonly class Product
         private string $name,
         private string $description,
         private string $thumbnail,
-        private float $price,
+        private string $price,
     ) {
     }
 
@@ -53,7 +53,7 @@ readonly class Product
         return $this->thumbnail;
     }
 
-    public function getPrice(): float
+    public function getPrice(): string
     {
         return $this->price;
     }

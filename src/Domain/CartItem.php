@@ -9,7 +9,7 @@ final readonly class CartItem
     public function __construct(
         private string $uuid,
         private string $productUuid,
-        private float $price,
+        private string $price,
         private int $quantity,
     ) {
     }
@@ -24,7 +24,7 @@ final readonly class CartItem
         return $this->productUuid;
     }
 
-    public function getPrice(): float
+    public function getPrice(): string
     {
         return $this->price;
     }

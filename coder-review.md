@@ -3,31 +3,32 @@
 AddToCartController\
     - Это, по идее, должен быть не get, а post\
     - Отсутствует, собственно, сохранение Cart в Redis (где-то потерялся вызов $this->cartManager->saveCart())\
+    - Если корзины еще нет - она должна тут создаваться, а не отдаваться 404
     - Возможно добавить неактивный продукт в корзину    
 
-\Raketa\BackendTestTask\Controller\GetCartController::get
+GetCartController
     Всегда возвращает 404, хотя при успешном результате должен возвращать 200
 
-\Raketa\BackendTestTask\Repository\ProductRepository::getByCategory
-\Raketa\BackendTestTask\Repository\ProductRepository::getByUuid
+ProductRepository::getByCategory
+ProductRepository::getByUuid
     Строка в SQL запроса вставляется без обрамления кавычками. Лучше использовать запрос с передачей параметров
 
-\Raketa\BackendTestTask\Repository\ProductRepository::getByCategory
+ProductRepository::getByCategory
     SQL-запрос получает только id, а там нужны все колонки
 
-class ProductRepository
+ProductRepository
     Пропущен импорт Exception;
 
-\Raketa\BackendTestTask\Repository\CartManager::saveCart
+CartManager::saveCart
     В вызове $this->connector->set() перепутан порядок аргументов
 
-\Raketa\BackendTestTask\Infrastructure\Connector::get
+Connector::get
     Неверное объявление типа аргумента - там должен быть string вместо Cart
 
-\Raketa\BackendTestTask\Repository\CartManager::getCart
+CartManager::getCart
     При вызове new Cart() некорректные аргументы, но он там и в принципе не нужен.
     Крайне нежелательно чтобы метод get... что-то создавал.
-    Пусть возвращает null если данных нет.
+    Пусть возвращает null если данных нет, а не создает новый объект.
 
 По архитектуре
 =
@@ -39,12 +40,15 @@ class ProductRepository
     $logger тоже через DI, а то он сейчас нигде не инициализируется
     Соответственно, настроить DI-контейнер так, чтобы настройки пробрасывались в ConnectorFacade
 
-\Raketa\BackendTestTask\View\CartView
-    SQL запросы в цикле для отображения продуктов корзины. Нужно вытаскивать все данные одним запросом.
+CartView
+    - SQL запросы в цикле для отображения продуктов корзины. Нужно вытаскивать все данные одним запросом.
+    - total в items - это промежуточный общий итог, а подразумевалась, видимо, цена конкретного item (price*quantity) 
 
 ProductView
     Это, скорее, ProductCategoryView.
     ProductView должен возвращать View для сущности Product
+
+Для представления финансовой информации лучше использовать не float, а decimal и работать через BCMath или аналогичный пакет с десятеричной арифметикой
     
 Всякие мелочи
 =

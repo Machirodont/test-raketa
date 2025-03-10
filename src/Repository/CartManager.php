@@ -7,6 +7,7 @@ namespace Raketa\BackendTestTask\Repository;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Raketa\BackendTestTask\Domain\Cart;
+use Raketa\BackendTestTask\Domain\Customer;
 use Raketa\BackendTestTask\Infrastructure\ConnectorFacade;
 
 class CartManager
@@ -42,6 +43,16 @@ class CartManager
         }
 
         return null;
+    }
+
+    public function createCart(): Cart
+    {
+        return new Cart(
+            $this->getCartCacheKey(),
+            new Customer(0,'','','',''), // Логика получения Customer в примере отсутствует
+            '',
+            []
+        );
     }
 
     private function getCartCacheKey(): string

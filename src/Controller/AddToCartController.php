@@ -36,10 +36,7 @@ readonly class AddToCartController
 
         $cart = $this->cartManager->getCart();
         if (! $cart) {
-            return $this->responseFactory->createResponse(
-                ['message' => 'Cart not found'],
-                404
-            );
+            $cart = $this->cartManager->createCart();
         }
 
         $cart->addItem(
